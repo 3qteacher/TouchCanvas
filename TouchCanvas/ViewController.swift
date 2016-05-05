@@ -8,7 +8,7 @@
 
 import UIKit
 
-class ViewController: UIViewController, TLKSocketIOSignalingDelegate{
+class ViewController: UIViewController{
     // MARK: Properties
     
     var visualizeAzimuth = false
@@ -25,34 +25,11 @@ class ViewController: UIViewController, TLKSocketIOSignalingDelegate{
         return view as! CanvasView
     }
     
-    let signaling = TLKSocketIOSignaling.init(video: false)
     // MARK: View Life Cycle
     
     override func viewDidLoad() {
         canvasView.addSubview(reticleView)
-        signaling.delegate = self
-        /*
-        signaling.connectToServer("signaling.simplewebrtc.com", port: 80, secure: false, success: {
-            self.signaling.joinRoom("Room", success: {
-                NSLog("Join Room")
-                }, failure: {
-                 NSLog("Join Room Failed")
-            })
-            NSLog("connect success")
-            }, failure: {})
-        
-        })*/
-        signaling.connectToServer("signaling.simplewebrtc.com", port: 80, secure: false, success: {
-            self.signaling.joinRoom("Room", success: {
-                NSLog("Join Room")
-                }, failure: {
-                    NSLog("Join Room Failed")
-            })
-            NSLog("connect success")
-            }) { (e) in
-                NSLog("connect Failed")
-        }
-        
+		canvasView.setupWebRTC()
     }
     
     // MARK: Touch Handling
@@ -115,24 +92,6 @@ class ViewController: UIViewController, TLKSocketIOSignalingDelegate{
     
     override func touchesEstimatedPropertiesUpdated(touches: Set<NSObject>) {
         canvasView.updateEstimatedPropertiesForTouches(touches)
-    }
-    //mark - TLKSocketIOSignalingDelegate
-    /*
-    func socketIOSignaling(socketIOSignaling: TLKSocketIOSignaling!, onDirMessage message: NSString!) {
-        NSLog("Receiving MSG [%@]", message)
-    }
-    func socketIOSignaling(socketIOSignaling: TLKSocketIOSignaling!, onDirOpen channel: RTCDataChannel) {
-        self.signaling.sendDirMessage
-    }*/
-    func socketIOSignaling(socketIOSignaling: TLKSocketIOSignaling!, onDirMessage message: String!) {
-        NSLog("Receiving MSG [%@]", message)
-    }
-    func socketIOSignaling(socketIOSignaling: TLKSocketIOSignaling!, onDirOpen channel: RTCDataChannel!) {
-        self.signaling.sendDirMessage("Hello Baiping.", successHandler: {
-               NSLog("Send Data Success.")
-            }) { (error) in
-                NSLog("Send Data Fail.")
-        }
     }
     // MARK: Actions
     

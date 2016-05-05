@@ -8,12 +8,12 @@
 
 import UIKit
 
-class CanvasView: UIView {
+class CanvasView: UIView, TLKSocketIOSignalingDelegate {
     // MARK: Properties
     
     let isPredictionEnabled = UIDevice.currentDevice().userInterfaceIdiom == .Pad
     let isTouchUpdatingEnabled = true
-    
+    let signaling = TLKSocketIOSignaling.init(video: false)
     var usePreciseLocations = false {
         didSet {
             needsFullRedraw = true
@@ -53,7 +53,7 @@ class CanvasView: UIView {
         be accessed in `NSResponder` callbacks and methods called from them.
     */
     let pendingLines = NSMapTable.strongToStrongObjectsMapTable()
-    
+
     /// A `CGContext` for drawing the last representation of lines no longer receiving updates into.
     lazy var frozenContext: CGContext = {
         let scale = self.window!.screen.scale
@@ -278,5 +278,31 @@ class CanvasView: UIView {
 
         // Store into finished lines to allow for a full redraw on option changes.
         finishedLines.append(line)
+    }
+	
+	func setupWebRTC(){
+		self.signaling.delegate = self
+		self.signaling.connectToServer("signaling.simplewebrtc.com", port: 80, secure: false, success: {
+			self.signaling.joinRoom("Room", success: {
+				NSLog("Join Room")
+				}, failure: {
+					NSLog("Join Room Failed")
+			})
+			NSLog("connect success")
+			}) { (e) in
+				NSLog("connect Failed")
+		}
+	}
+	
+	//mark - TLKSocketIOSignalingDelegate
+    func socketIOSignaling(socketIOSignaling: TLKSocketIOSignaling!, onDirMessage message: String!) {
+        NSLog("Receiving MSG [%@]", message)
+    }
+    func socketIOSignaling(socketIOSignaling: TLKSocketIOSignaling!, onDirOpen channel: RTCDataChannel!) {
+        self.signaling.sendDirMessage("Hello Baiping.", successHandler: {
+               NSLog("Send Data Success.")
+            }) { (error) in
+                NSLog("Send Data Fail.")
+        }
     }
 }
