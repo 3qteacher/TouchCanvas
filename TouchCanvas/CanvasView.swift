@@ -14,6 +14,7 @@ class CanvasView: UIView, TLKSocketIOSignalingDelegate {
     let isPredictionEnabled = UIDevice.currentDevice().userInterfaceIdiom == .Pad
     let isTouchUpdatingEnabled = true
     let signaling = TLKSocketIOSignaling.init(video: false)
+	let webRTCEnable = false
     var usePreciseLocations = false {
         didSet {
             needsFullRedraw = true
@@ -155,7 +156,15 @@ class CanvasView: UIView, TLKSocketIOSignalingDelegate {
                 updateRect.unionInPlace(predictedRect)
             }
         }
-        
+        if webRTCEnable{
+		    dispatch_async(dispatch_get_main_queue()){
+				self.signaling.sendDirMessage(NSStringFromCGRect(updateRect), successHandler: {
+				   NSLog("Send Data Success.")
+				}) { (error) in
+					NSLog("Send Data Fail.")
+				}
+			}
+		}
         setNeedsDisplayInRect(updateRect)
     }
     
@@ -222,7 +231,15 @@ class CanvasView: UIView, TLKSocketIOSignalingDelegate {
             // This touch is ending, remove the line corresponding to it from `activeLines`.
             activeLines.removeObjectForKey(touch)
         }
-        
+        if webRTCEnable{
+			dispatch_async(dispatch_get_main_queue()){
+				self.signaling.sendDirMessage(NSStringFromCGRect(updateRect), successHandler: {
+				   NSLog("Send Data Success.")
+				}) { (error) in
+					NSLog("Send Data Fail.")
+				}
+			}
+		}
         setNeedsDisplayInRect(updateRect)
     }
     
@@ -296,9 +313,11 @@ class CanvasView: UIView, TLKSocketIOSignalingDelegate {
 	
 	//mark - TLKSocketIOSignalingDelegate
     func socketIOSignaling(socketIOSignaling: TLKSocketIOSignaling!, onDirMessage message: String!) {
-        NSLog("Receiving MSG [%@]", message)
+        //NSLog("Receiving MSG [%@]", message)
+		setNeedsDisplayInRect(CGRectFromString(message))
     }
     func socketIOSignaling(socketIOSignaling: TLKSocketIOSignaling!, onDirOpen channel: RTCDataChannel!) {
+	    webRTCEnable = true
         self.signaling.sendDirMessage("Hello Baiping.", successHandler: {
                NSLog("Send Data Success.")
             }) { (error) in
