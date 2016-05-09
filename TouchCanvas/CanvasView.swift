@@ -14,7 +14,7 @@ class CanvasView: UIView, TLKSocketIOSignalingDelegate {
     let isPredictionEnabled = UIDevice.currentDevice().userInterfaceIdiom == .Pad
     let isTouchUpdatingEnabled = true
     let signaling = TLKSocketIOSignaling.init(video: false)
-	let webRTCEnable = false
+	var webRTCEnable = false
     var usePreciseLocations = false {
         didSet {
             needsFullRedraw = true
@@ -299,7 +299,7 @@ class CanvasView: UIView, TLKSocketIOSignalingDelegate {
 	
 	func setupWebRTC(){
 		self.signaling.delegate = self
-		self.signaling.connectToServer("signaling.simplewebrtc.com", port: 80, secure: false, success: {
+		self.signaling.connectToServer("123.56.252.219", port: 443, secure: true, success: {
 			self.signaling.joinRoom("Room", success: {
 				NSLog("Join Room")
 				}, failure: {
