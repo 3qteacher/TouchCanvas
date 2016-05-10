@@ -170,8 +170,10 @@ class Line: NSObject {
                 CGContextAddLineToPoint(context, targetPoint.x, targetPoint.y)
                 CGContextStrokePath(context)
             }
-            
+            DataChannel.sharedInstance.sendData(["action": "start","x": String(priorLocation.x),"y": String(priorLocation.y)])
+            DataChannel.sharedInstance.sendData(["action": "move","x": String(location.x),"y": String(location.y)])
             maybePriorPoint = point
+            
         }
     }
     

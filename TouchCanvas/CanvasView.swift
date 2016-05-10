@@ -14,7 +14,7 @@ class CanvasView: UIView, TLKSocketIOSignalingDelegate {
     let isPredictionEnabled = UIDevice.currentDevice().userInterfaceIdiom == .Pad
     let isTouchUpdatingEnabled = true
     let signaling = TLKSocketIOSignaling.init(video: false)
-	var webRTCEnable = false
+    var webRTCEnable = false
     var usePreciseLocations = false {
         didSet {
             needsFullRedraw = true
@@ -156,6 +156,7 @@ class CanvasView: UIView, TLKSocketIOSignalingDelegate {
                 updateRect.unionInPlace(predictedRect)
             }
         }
+        /*
         if webRTCEnable{
 		    dispatch_async(dispatch_get_main_queue()){
 				self.signaling.sendDirMessage(NSStringFromCGRect(updateRect), successHandler: {
@@ -164,7 +165,7 @@ class CanvasView: UIView, TLKSocketIOSignalingDelegate {
 					NSLog("Send Data Fail.")
 				}
 			}
-		}
+		}*/
         setNeedsDisplayInRect(updateRect)
     }
     
@@ -178,7 +179,7 @@ class CanvasView: UIView, TLKSocketIOSignalingDelegate {
         return newLine
     }
     
-    func addPointsOfType(var type: LinePoint.PointType, forTouches touches: [UITouch], toLine line: Line, currentUpdateRect updateRect: CGRect) -> CGRect {
+    func addPointsOfType( var type: LinePoint.PointType, forTouches touches: [UITouch], toLine line: Line, currentUpdateRect updateRect: CGRect) -> CGRect {
         var accumulatedRect = CGRect.null
         
         for (idx, touch) in touches.enumerate() {
@@ -231,15 +232,7 @@ class CanvasView: UIView, TLKSocketIOSignalingDelegate {
             // This touch is ending, remove the line corresponding to it from `activeLines`.
             activeLines.removeObjectForKey(touch)
         }
-        if webRTCEnable{
-			dispatch_async(dispatch_get_main_queue()){
-				self.signaling.sendDirMessage(NSStringFromCGRect(updateRect), successHandler: {
-				   NSLog("Send Data Success.")
-				}) { (error) in
-					NSLog("Send Data Fail.")
-				}
-			}
-		}
+        
         setNeedsDisplayInRect(updateRect)
     }
     
@@ -297,9 +290,9 @@ class CanvasView: UIView, TLKSocketIOSignalingDelegate {
         finishedLines.append(line)
     }
 	
-	func setupWebRTC(){
+    func setupWebRTC(){
 		self.signaling.delegate = self
-		self.signaling.connectToServer("123.56.252.219", port: 443, secure: true, success: {
+		self.signaling.connectToServer("123.56.252.219", port: 443, secure: false, success: {
 			self.signaling.joinRoom("Room", success: {
 				NSLog("Join Room")
 				}, failure: {
@@ -318,10 +311,11 @@ class CanvasView: UIView, TLKSocketIOSignalingDelegate {
     }
     func socketIOSignaling(socketIOSignaling: TLKSocketIOSignaling!, onDirOpen channel: RTCDataChannel!) {
 	    webRTCEnable = true
+        /*
         self.signaling.sendDirMessage("Hello Baiping.", successHandler: {
                NSLog("Send Data Success.")
             }) { (error) in
                 NSLog("Send Data Fail.")
-        }
+        }*/
     }
 }

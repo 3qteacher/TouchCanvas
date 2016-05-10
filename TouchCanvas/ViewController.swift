@@ -29,7 +29,8 @@ class ViewController: UIViewController{
     
     override func viewDidLoad() {
         canvasView.addSubview(reticleView)
-		canvasView.setupWebRTC()
+        DataChannel.sharedInstance
+        //canvasView.setupWebRTC()
     }
     
     // MARK: Touch Handling
