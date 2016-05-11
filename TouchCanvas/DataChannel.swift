@@ -11,6 +11,8 @@ class DataChannel: NSObject, TLKSocketIOSignalingDelegate{
     let signaling = TLKSocketIOSignaling.init(video: false)
     var webRTCEnable = false
     static let sharedInstance = DataChannel()
+	//Create Send Data Queue.
+	static let myQueue = dispatch_queue_create("com.3qteacher", nil)
     private override init(){
         super.init()
         self.setupWebRTC()
@@ -34,13 +36,13 @@ class DataChannel: NSObject, TLKSocketIOSignalingDelegate{
         if !webRTCEnable{
             return
         }
-        dispatch_async(dispatch_get_main_queue()){
-            self.signaling.sendDirMessage(message, successHandler: {
-                //NSLog("Send Data Success.")
-            }) { (error) in
-                NSLog("Send Data Fail.")
-            }
-        }
+        //dispatch_async(dispatch_get_main_queue()){
+		self.signaling.sendDirMessage(message, successHandler: {
+			//NSLog("Send Data Success.")
+		}) { (error) in
+			NSLog("Send Data Fail.")
+		}
+        //}
     }
     
     //mark - TLKSocketIOSignalingDelegate
