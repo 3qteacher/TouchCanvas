@@ -172,8 +172,8 @@ class Line: NSObject {
             }
 			//Sync Data to PC
 			dispatch_async(DataChannel.sharedInstance.myQueue, { () -> Void in
-                DataChannel.sharedInstance.sendData(["action": "start","x": String(priorLocation.x),"y": String(priorLocation.y)])
-				DataChannel.sharedInstance.sendData(["action": "move","x": String(location.x),"y": String(location.y)])
+                DataChannel.sharedInstance.sendData(["action": "start","x": String(priorLocation.x),"y": String(priorLocation.y), "force": point.magnitude])
+				DataChannel.sharedInstance.sendData(["action": "move","x": String(location.x),"y": String(location.y), "force": point.magnitude])
 			})
 
             maybePriorPoint = point
