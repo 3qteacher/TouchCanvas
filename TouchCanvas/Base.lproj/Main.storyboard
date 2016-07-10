@@ -1,31 +1,22 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="9532" systemVersion="14F1605" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" initialViewController="3pu-ol-7ZX">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="10116" systemVersion="15E65" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" initialViewController="3pu-ol-7ZX">
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="9530"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="10085"/>
         <capability name="Navigation items with more than one left or right bar item" minToolsVersion="7.0"/>
     </dependencies>
     <scenes>
-        <!--Touch Canvas-->
+        <!--3Q Teacher-->
         <scene sceneID="984-vW-kks">
             <objects>
                 <viewController id="1fl-Ij-fK1" customClass="ViewController" customModule="TouchCanvas" customModuleProvider="target" sceneMemberID="viewController">
-                    <layoutGuides>
-                        <viewControllerLayoutGuide type="top" id="4h2-IA-tif"/>
-                        <viewControllerLayoutGuide type="bottom" id="y0f-7p-uuV"/>
-                    </layoutGuides>
-                    <view key="view" multipleTouchEnabled="YES" contentMode="scaleToFill" id="l3J-kE-Vqx" customClass="CanvasView" customModule="TouchCanvas" customModuleProvider="target">
-                        <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
-                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
-                    </view>
-                    <navigationItem key="navigationItem" title="Touch Canvas" id="urh-QX-0ux">
+                    <navigationItem key="navigationItem" title="3Q Teacher" id="urh-QX-0ux">
                         <leftBarButtonItems>
                             <barButtonItem id="89a-qb-NJP">
                                 <button key="customView" opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" id="58x-qE-zXG">
-                                    <rect key="frame" x="20" y="7" width="46" height="30"/>
+                                    <rect key="frame" x="20" y="7" width="42" height="30"/>
                                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                    <state key="normal" title="Debug"/>
+                                    <state key="normal" title="Image"/>
                                     <connections>
                                         <action selector="toggleDebugDrawing:" destination="1fl-Ij-fK1" eventType="touchUpInside" id="Sa3-gr-UId"/>
                                     </connections>
@@ -33,9 +24,9 @@
                             </barButtonItem>
                             <barButtonItem id="piu-OG-cVi">
                                 <button key="customView" opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" id="2yf-Ag-uEP">
-                                    <rect key="frame" x="74" y="7" width="51" height="30"/>
+                                    <rect key="frame" x="70" y="7" width="30" height="30"/>
                                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                    <state key="normal" title="Precise"/>
+                                    <state key="normal" title="PPT"/>
                                     <connections>
                                         <action selector="toggleUsePreciseLocations:" destination="1fl-Ij-fK1" eventType="touchUpInside" id="bla-0G-gQx"/>
                                     </connections>

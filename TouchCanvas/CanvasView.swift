@@ -8,13 +8,11 @@
 
 import UIKit
 
-class CanvasView: UIView, TLKSocketIOSignalingDelegate {
+class CanvasView: UIView {
     // MARK: Properties
     
     let isPredictionEnabled = UIDevice.currentDevice().userInterfaceIdiom == .Pad
     let isTouchUpdatingEnabled = true
-    let signaling = TLKSocketIOSignaling.init(video: false)
-    var webRTCEnable = false
     var usePreciseLocations = false {
         didSet {
             needsFullRedraw = true
@@ -27,16 +25,34 @@ class CanvasView: UIView, TLKSocketIOSignalingDelegate {
             setNeedsDisplay()
         }
     }
-    var needsFullRedraw = true
-    
+    var needsFullRedraw = false
+    //Test
+    var count = 0
     /// Array containing all line objects that need to be drawn in `drawRect(_:)`.
     var lines = [Line]()
 
     /// Array containing all line objects that have been completely drawn into the frozenContext.
     var finishedLines = [Line]()
-
     
-    /** 
+    override class func layerClass() -> AnyClass {
+        return CATiledLayer.self
+    }
+    
+    /*
+    override init?(frame: CGRect) {
+        super.init(frame: frame)
+        guard let layer = self.layer as? CATiledLayer else {  }
+        layer.contentsScale = UIScreen.mainScreen().scale
+        layer.tileSize = self.bounds.size//CGSize(width: self.bounds., height: sideLength)
+    }
+    required init?(coder aDecoder: NSCoder) {
+        //srand48(Int(NSDate().timeIntervalSince1970))
+        super.init(coder: aDecoder)
+        guard let layer = self.layer as? CATiledLayer else { return nil }
+        layer.contentsScale = UIScreen.mainScreen().scale
+        layer.tileSize = self.bounds.size//CGSize(width: self.bounds., height: sideLength)
+    }*/
+    /**
         Holds a map of `UITouch` objects to `Line` objects whose touch has not ended yet.
     
         Use `NSMapTable` to handle association as `UITouch` doesn't conform to `NSCopying`. There is no value
@@ -57,34 +73,84 @@ class CanvasView: UIView, TLKSocketIOSignalingDelegate {
 
     /// A `CGContext` for drawing the last representation of lines no longer receiving updates into.
     lazy var frozenContext: CGContext = {
-        let scale = self.window!.screen.scale
+        let scale = CGFloat(2)
         var size = self.bounds.size
-        
+        NSLog("Width %f, Height %f", size.width , size.height)
         size.width *= scale
         size.height *= scale
+        size.width = size.width/CANVAS_SIZE
+        
+        size.height = size.height/CANVAS_SIZE
+        
         let colorSpace = CGColorSpaceCreateDeviceRGB()
         
         let context = CGBitmapContextCreate(nil, Int(size.width), Int(size.height), 8, 0, colorSpace, CGImageAlphaInfo.PremultipliedLast.rawValue)
-
+        //let context = CGBitmapContextCreate(nil, Int(size.width), Int(size.height), 8, 0, colorSpace, CGImageAlphaInfo.kCGImageAlphaPremultipliedLast)
+        //CGContextBeginTransparencyLayer(context, nil)
+        //CGContextSetRGBFillColor(context, 56, 67, 35, 1)
         CGContextSetLineCap(context, .Round)
         let transform = CGAffineTransformMakeScale(scale, scale)
         CGContextConcatCTM(context, transform)
-        
+        //CGContextClearRect(context, CGRectMake(0, 0, size.width, size.height))
         return context!
     }()
     
     /// An optional `CGImage` containing the last representation of lines no longer receiving updates.
     var frozenImage: CGImage?
+
+    /*
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        //let layer = self.layer as! CATiledLayer
+        //ayer.tileSize = CGSizeMake(300, 300)
+    }
+    required init?(coder aDecoder: NSCoder) {
+        super.init(coder: aDecoder)
+        let layer = self.layer as! CATiledLayer
+        layer.contentsScale = UIScreen.mainScreen().scale
+        layer.tileSize =  self.bounds.size
+    }*/
+    override func touchesBegan(touches: Set<UITouch>, withEvent event: UIEvent?) {
+        //NSLog("Touch Began")
+        if isMove{
+            //CGContextClearRect(frozenContext, CGRectMake(0 , 0,bounds.size.width/CANVAS_SIZE, bounds.size.height/CANVAS_SIZE))
+            //CGContextDrawImage(frozenContext, CGRectMake(0 , 0,bounds.size.width, bounds.size.height), UIGraphicsGetImageFromCurrentImageContext().CGImage!)
+            isMove = false
+        }
+        drawTouches(touches, withEvent: event)
+        
+    }
+    
+    override func touchesMoved(touches: Set<UITouch>, withEvent event: UIEvent?) {
+        drawTouches(touches, withEvent: event)
+    }
+    
+    override func touchesEnded(touches: Set<UITouch>, withEvent event: UIEvent?) {
+        drawTouches(touches, withEvent: event)
+        endTouches(touches, cancel: false)
+        //NSLog("Test Count %d", count)
+        //count = 0
+        //NSLog("Touch End")
+    }
+    
+    override func touchesCancelled(touches: Set<UITouch>?, withEvent event: UIEvent?) {
+        guard let touches = touches else { return }
+        endTouches(touches, cancel: true)
+    }
     
     // MARK: Drawing
-    
+    //var defoutPoint = CGPointMake(0, 0)
+    var isMove = false
     override func drawRect(rect: CGRect) {
         let context = UIGraphicsGetCurrentContext()!
-        
+
+        //NSLog("Draw Rect")
         CGContextSetLineCap(context, .Round)
 
         if (needsFullRedraw) {
             setFrozenImageNeedsUpdate()
+            NSLog("Clear")
+            //CGContextClearRect(frozenContext, CGRectMake(defoutPoint.x , defoutPoint.y,bounds.size.width/CANVAS_SIZE, bounds.size.height/CANVAS_SIZE))
             CGContextClearRect(frozenContext, bounds)
             for array in [finishedLines,lines] {
                 for line in array {
@@ -93,15 +159,23 @@ class CanvasView: UIView, TLKSocketIOSignalingDelegate {
             }
             needsFullRedraw = false
         }
+        //CGContextBeginTransparencyLayer(frozenContext, nil)
+
 
         frozenImage = frozenImage ?? CGBitmapContextCreateImage(frozenContext)
-        
+        //CGContextEndTransparencyLayer(frozenContext)
+        //	UIGraphicsGetImage
         if let frozenImage = frozenImage {
-            CGContextDrawImage(context, bounds, frozenImage)
+            CGContextDrawImage(context, CGRectMake(defoutPoint.x , defoutPoint.y,bounds.size.width/CANVAS_SIZE, bounds.size.height/CANVAS_SIZE), frozenImage)
+            //CGContextDrawImage(context, rect, frozenImage)
+            //NSLog("Point %@", NSStringFromCGRect(bounds))
+            //CGContextDrawImage(context, bounds, frozenImage)
         }
-        
+        //NSLog("Line Count %d", lines.count)
         for line in lines {
-            line.drawInContext(context, isDebuggingEnabled: isDebuggingEnabled, usePreciseLocation: usePreciseLocations)
+            //NSLog("Line Points %d", line.points.count)
+            line.drawInContext(context, isDebuggingEnabled: true, usePreciseLocation: usePreciseLocations)
+            
         }
     }
     
@@ -156,16 +230,8 @@ class CanvasView: UIView, TLKSocketIOSignalingDelegate {
                 updateRect.unionInPlace(predictedRect)
             }
         }
-        /*
-        if webRTCEnable{
-		    dispatch_async(dispatch_get_main_queue()){
-				self.signaling.sendDirMessage(NSStringFromCGRect(updateRect), successHandler: {
-				   NSLog("Send Data Success.")
-				}) { (error) in
-					NSLog("Send Data Fail.")
-				}
-			}
-		}*/
+
+
         setNeedsDisplayInRect(updateRect)
     }
     
@@ -188,22 +254,26 @@ class CanvasView: UIView, TLKSocketIOSignalingDelegate {
             // The visualization displays non-`.Stylus` touches differently.
             if !isStylus {
                 type.unionInPlace(.Finger)
+               
             }
             
             // Touches with estimated properties require updates; add this information to the `PointType`.
+            /*
             if isTouchUpdatingEnabled && !touch.estimatedProperties.isEmpty {
                 type.unionInPlace(.NeedsUpdate)
+               
             }
-            
+            */
             // The last touch in a set of `.Coalesced` touches is the originating touch. Track it differently.
             if type.contains(.Coalesced) && idx == touches.count - 1 {
                 type.subtractInPlace(.Coalesced)
                 type.unionInPlace(.Standard)
+                
             }
             
             let touchRect = line.addPointOfType(type, forTouch: touch)
             accumulatedRect.unionInPlace(touchRect)
-            
+            count += 1
             commitLine(line)
         }
         
@@ -221,24 +291,31 @@ class CanvasView: UIView, TLKSocketIOSignalingDelegate {
             if cancel { updateRect.unionInPlace(line.cancel()) }
             
             // If the line is complete (no points needing updates) or updating isn't enabled, move the line to the `frozenImage`.
+            /*
             if line.isComplete || !isTouchUpdatingEnabled {
                 finishLine(line)
             }
             // Otherwise, add the line to our map of touches to lines pending update.
             else {
                 pendingLines.setObject(line, forKey: touch)
-            }
+            }*/
+ 
+            finishLine(line)
             
             // This touch is ending, remove the line corresponding to it from `activeLines`.
             activeLines.removeObjectForKey(touch)
         }
-        
+        dispatch_async(DataChannel.myQueue, { () -> Void in
+            
+            DataChannel.sharedInstance.sendData(["action": "end"])
+        })
         setNeedsDisplayInRect(updateRect)
+        //CGContextClearRect(frozenContext, CGRectMake(0,0,bounds.size.width/CANVAS_SIZE, bounds.size.height/CANVAS_SIZE))
     }
     
     func updateEstimatedPropertiesForTouches(touches: Set<NSObject>) {
         guard isTouchUpdatingEnabled, let touches = touches as? Set<UITouch> else { return }
-        
+        //NSLog("Receiving Update Event")
         for touch in touches {
             var isPending = false
             
@@ -288,34 +365,5 @@ class CanvasView: UIView, TLKSocketIOSignalingDelegate {
 
         // Store into finished lines to allow for a full redraw on option changes.
         finishedLines.append(line)
-    }
-	
-    func setupWebRTC(){
-		self.signaling.delegate = self
-		self.signaling.connectToServer("123.56.252.219", port: 443, secure: false, success: {
-			self.signaling.joinRoom("Room", success: {
-				NSLog("Join Room")
-				}, failure: {
-					NSLog("Join Room Failed")
-			})
-			NSLog("connect success")
-			}) { (e) in
-				NSLog("connect Failed")
-		}
-	}
-	
-	//mark - TLKSocketIOSignalingDelegate
-    func socketIOSignaling(socketIOSignaling: TLKSocketIOSignaling!, onDirMessage message: String!) {
-        //NSLog("Receiving MSG [%@]", message)
-		setNeedsDisplayInRect(CGRectFromString(message))
-    }
-    func socketIOSignaling(socketIOSignaling: TLKSocketIOSignaling!, onDirOpen channel: RTCDataChannel!) {
-	    webRTCEnable = true
-        /*
-        self.signaling.sendDirMessage("Hello Baiping.", successHandler: {
-               NSLog("Send Data Success.")
-            }) { (error) in
-                NSLog("Send Data Fail.")
-        }*/
     }
 }

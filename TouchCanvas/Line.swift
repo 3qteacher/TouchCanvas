@@ -105,7 +105,7 @@ class Line: NSObject {
     
     func drawInContext(context: CGContext, isDebuggingEnabled: Bool, usePreciseLocation: Bool) {
         var maybePriorPoint: LinePoint?
-        
+        //var count = 0
         for point in points {
             guard let priorPoint = maybePriorPoint else {
                 maybePriorPoint = point
@@ -116,6 +116,7 @@ class Line: NSObject {
             var color = UIColor.blackColor()
             
             let pointType = point.pointType
+            /*
             if isDebuggingEnabled {
                 if pointType.contains(.Cancelled) {
                     color = UIColor.redColor()
@@ -142,22 +143,37 @@ class Line: NSObject {
                 if pointType.contains(.Predicted) && !pointType.contains(.Cancelled) {
                     color = color.colorWithAlphaComponent(0.5)
                 }
+            }*/
+            
+            if pointType.contains(.Cancelled) {
+                color = UIColor.clearColor()
+            }
+            else if pointType.contains(.Finger) {
+                color = UIColor.purpleColor()
+            }
+            if pointType.contains(.Predicted) && !pointType.contains(.Cancelled) {
+                color = color.colorWithAlphaComponent(0.5)
             }
             
             let location = usePreciseLocation ? point.preciseLocation : point.location
             let priorLocation = usePreciseLocation ? priorPoint.preciseLocation : priorPoint.location
             
+            //CGContextBeginTransparencyLayer(context, nil)
             CGContextSetStrokeColorWithColor(context, color.CGColor)
             
             CGContextBeginPath(context)
-            
-            CGContextMoveToPoint(context, priorLocation.x, priorLocation.y)
-            CGContextAddLineToPoint(context, location.x, location.y)
-            
+            if(isDebuggingEnabled){
+                CGContextMoveToPoint(context, priorLocation.x, priorLocation.y)
+                CGContextAddLineToPoint(context, location.x, location.y)
+            }else{
+                CGContextMoveToPoint(context, priorLocation.x - defoutPoint.x, priorLocation.y - defoutPoint.y)
+                CGContextAddLineToPoint(context, location.x - defoutPoint.x, location.y - defoutPoint.y)
+            }
             CGContextSetLineWidth(context, point.magnitude)
             CGContextStrokePath(context)
-            
+            //CGContextEndTransparencyLayer(context)
             // Draw azimuith and elevation on all non-coalesced points when debugging.
+            /*
             if isDebuggingEnabled && !pointType.contains(.Coalesced) && !pointType.contains(.Predicted) && !pointType.contains(.Finger) {
                 CGContextBeginPath(context)
                 CGContextSetStrokeColorWithColor(context, UIColor.redColor().CGColor)
@@ -169,15 +185,17 @@ class Line: NSObject {
                 targetPoint.y += location.y
                 CGContextAddLineToPoint(context, targetPoint.x, targetPoint.y)
                 CGContextStrokePath(context)
-            }
+            }*/
 			//Sync Data to PC
-			dispatch_async(DataChannel.sharedInstance.myQueue, { () -> Void in
-                DataChannel.sharedInstance.sendData(["action": "start","x": String(priorLocation.x),"y": String(priorLocation.y), "force": point.magnitude])
-				DataChannel.sharedInstance.sendData(["action": "move","x": String(location.x),"y": String(location.y), "force": point.magnitude])
+           // count += 1
+			dispatch_async(DataChannel.myQueue, { () -> Void in
+                
+                DataChannel.sharedInstance.sendData(["action": "start","x": String(priorLocation.x),"y": String(priorLocation.y), "force": String(point.magnitude)])
+				DataChannel.sharedInstance.sendData(["action": "move","x": String(location.x),"y": String(location.y), "force": String(point.magnitude)])
 			})
 
             maybePriorPoint = point
-            
+            //NSLog("Send Count %d", count)
         }
     }
     
@@ -188,6 +206,7 @@ class Line: NSObject {
         if commitAll {
             committing = allPoints
             points.removeAll()
+            //NSLog("Remove All Points")
         }
         else {
             for (index, point) in allPoints.enumerate() {
@@ -330,7 +349,7 @@ class LinePoint: NSObject  {
         force = (type == .Stylus || touch.force > 0) ? touch.force : 1.0
         
         if !estimatedPropertiesExpectingUpdates.isEmpty {
-            self.pointType.unionInPlace(.NeedsUpdate)
+            //self.pointType.unionInPlace(.NeedsUpdate)
         }
         
         estimationUpdateIndex = touch.estimationUpdateIndex

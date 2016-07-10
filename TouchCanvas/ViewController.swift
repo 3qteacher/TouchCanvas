@@ -7,11 +7,13 @@
 */
 
 import UIKit
-
-class ViewController: UIViewController{
+let CANVAS_SIZE = CGFloat(2)
+var defoutPoint = CGPointMake(0, 0)
+class ViewController: UIViewController, UIScrollViewDelegate{
     // MARK: Properties
     
     var visualizeAzimuth = false
+    var scrollView: UIScrollView!
     
     let reticleView: ReticleView = {
         let view = ReticleView(frame: CGRect.null)
@@ -20,21 +22,52 @@ class ViewController: UIViewController{
         
         return view
     }()
-    
-    var canvasView: CanvasView {
-        return view as! CanvasView
-    }
-    
-    // MARK: View Life Cycle
+    //var with =
+    var canvasView: CanvasView!
+    let sideLength = CGFloat(100.0)
+    var tiledLayer: CATiledLayer {
+        return canvasView.layer as! CATiledLayer
+    }    // MARK: View Life Cycle
     
     override func viewDidLoad() {
-        canvasView.addSubview(reticleView)
+        super.viewDidLoad()
+        //canvasView.addSubview(reticleView)
         DataChannel.sharedInstance
         //canvasView.setupWebRTC()
+        //var withCan = self.view.bounds.width*CANVAS_SIZE
+        //var heightCan = self.view.bounds.height*CANVAS_SIZE
+        canvasView = CanvasView(frame: CGRectMake(0, 0, view.bounds.width*CANVAS_SIZE, view.bounds.height*CANVAS_SIZE))
+        tiledLayer.tileSize = CGSize(width: sideLength, height: sideLength)
+        tiledLayer.contentsScale = UIScreen.mainScreen().scale
+        
+        //NSLog("Canvas View Height %f", view.bounds.height)
+        //canvasView.l
+        canvasView.backgroundColor = UIColor.clearColor()
+
+        scrollView = UIScrollView(frame: view.bounds)
+        scrollView.userInteractionEnabled = true
+        scrollView.scrollEnabled = true
+        //scrollView.contentSize = CGSizeMake(canvasView.bounds.width, canvasView.bounds.he)
+        scrollView.contentSize = canvasView.bounds.size
+        scrollView.canCancelContentTouches = true
+        scrollView.delaysContentTouches = false
+        scrollView.bounces = false
+        //scrollView.autoresizingMask = UIViewAutoresizing.FlexibleWidth | UIViewAutoresizing.FlexibleHeight
+        scrollView.panGestureRecognizer.minimumNumberOfTouches = 2
+        //scrollView.minimumZoomScale = 0.4
+        //scrollView.maximumZoomScale = 5.0
+        scrollView.delegate = self
+        scrollView.contentOffset = CGPointMake(0, 0)
+        //scrollView.
+        scrollView.addSubview(canvasView)
+        view.backgroundColor = UIColor.whiteColor()
+        view.addSubview(scrollView)
+        canvasView.userInteractionEnabled = true
+        
     }
     
     // MARK: Touch Handling
-    
+    /*
     override func touchesBegan(touches: Set<UITouch>, withEvent event: UIEvent?) {
         canvasView.drawTouches(touches, withEvent: event)
         
@@ -55,7 +88,7 @@ class ViewController: UIViewController{
             for touch in touches {
                 if touch.type == .Stylus {
                     updateReticleViewWithTouch(touch, event: event)
-                    
+                    NSLog("Receiving Touch Move Visualize")
                     // Use the last predicted touch to update the reticle.
                     guard let predictedTouch = event?.predictedTouchesForTouch(touch)?.last else { return }
                     
@@ -90,14 +123,15 @@ class ViewController: UIViewController{
             }
         }
     }
-    
+    */
     override func touchesEstimatedPropertiesUpdated(touches: Set<NSObject>) {
-        canvasView.updateEstimatedPropertiesForTouches(touches)
+        //canvasView.updateEstimatedPropertiesForTouches(touches)
     }
     // MARK: Actions
     
     @IBAction func clearView(sender: UIBarButtonItem) {
         canvasView.clear()
+        DataChannel.sharedInstance.sendData(["action": "delete"])
     }
     
     @IBAction func toggleDebugDrawing(sender: UIButton) {
@@ -145,5 +179,24 @@ class ViewController: UIViewController{
             reticleView.actualAzimuthUnitVector = azimuthUnitVector
             reticleView.actualAltitudeAngle = altitudeAngle
         }
+    }
+    
+    // MARK: UIScrollDelete
+    func scrollViewDidScroll(scrollView: UIScrollView) {
+        //NSLog("Do Scroll X(%s), Y(%s)", String(), String(scrollView.contentOffset.y))
+        //DataChannel.sharedInstance.sendData(["action": "scroll","x": String(scrollView.contentOffset.x),"y": String(scrollView.contentOffset.y)])
+        
+    }
+    func scrollViewDidEndDragging(scrollView: UIScrollView, willDecelerate decelerate: Bool) {
+        defoutPoint = scrollView.contentOffset
+        CGContextClearRect(canvasView.frozenContext, CGRectMake(0 , 0,canvasView.bounds.size.width/CANVAS_SIZE, canvasView.bounds.size.height/CANVAS_SIZE))
+          //CGContextDrawImage(canvasView.frozenContext, CGRectMake(0 , 0,canvasView.bounds.size.width, canvasView.bounds.size.height), CGBitmapContextCreateImage(UIGraphicsGetCurrentContext()))
+        
+        canvasView.isMove = true
+    }
+
+    
+    func viewForZoomingInScrollView(scrollView: UIScrollView) -> UIView? {
+       return canvasView
     }
 }

@@ -20,7 +20,7 @@ class DataChannel: NSObject, TLKSocketIOSignalingDelegate{
     
     func setupWebRTC(){
         self.signaling.delegate = self
-        self.signaling.connectToServer("123.56.252.219", port: 443, secure: false, success: {
+        self.signaling.connectToServer("123.56.252.219", port: 443, secure: true, success: {
             self.signaling.joinRoom("Room", success: {
                 NSLog("Join Room")
                 }, failure: {
@@ -52,10 +52,4 @@ class DataChannel: NSObject, TLKSocketIOSignalingDelegate{
     }
     func socketIOSignaling(socketIOSignaling: TLKSocketIOSignaling!, onDirOpen channel: RTCDataChannel!) {
         webRTCEnable = true
-        /*
-        self.signaling.sendDirMessage("Hello Baiping.", successHandler: {
-            NSLog("Send Data Success.")
-        }) { (error) in
-            NSLog("Send Data Fail.")
-        }*/
     }}
